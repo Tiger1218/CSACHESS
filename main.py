@@ -25,14 +25,23 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
+    def reachPlaceB(self, tables):
+        return False
+
     def move(self, tables, pos):
         tables[self.pos[0]][self.pos[1]] = null_chessman
         tables[pos[0]][pos[1]] = self
         return tables
 
-    def moveChecking(self, tables, pos):
-        newTable = self.move(tables, pos)
-        return winnerChecking(tables)
+    def reachPlace(self, tables):
+        reachList = []
+        for reach in self.reachPlaceB(tables):
+            if not checkmateChecking(self.move(tables, reach), self.side):
+                reachList.append(reach)
+
+    # def moveChecking(self, tables, pos):
+    #     newTable = self.move(tables, pos)
+    #     return winnerChecking(tables)
 
 
 null_chessman = Chessman("null", "null", "null", (0, 0))
@@ -190,7 +199,7 @@ class Soldier(Chessman):
         reachList = []
         if (self.pos[0], self.pos[1]) in S_TABLE[self.side]:
             if tables[self.pos[0]][self.pos[1] + S_FORWARD[self.side]].side != self.side:
-                reachList.append(self.pos[0], self.pos[1] + S_FORWARD[self.side])
+                reachList.append((self.pos[0], self.pos[1] + S_FORWARD[self.side]))
                 return reachList
         else:
             reachListx = [(self.pos[0], self.pos[1] + S_FORWARD[self.side]),
@@ -199,15 +208,20 @@ class Soldier(Chessman):
             for reach in reachListx:
                 if reach in A_TABLE:
                     if tables[reach[0]][reach[1]].side != self.side:
-                        reachList.append(reach[0], reach[1])
+                        reachList.append((reach[0], reach[1]))
             return reachList
 
 
-def winnerChecking(tables, side):
+def checkmateChecking(tables, side):
     red_king_pos = (0, 0)
     for x, y in R_PALACE:
-        if tables[x][y].name == "red_king":
+        if tables[x][y].name == side + "_king":
             red_king_pos = (x, y)
+    for x, y in A_TABLE:
+        if tables[x][y].side == REVERSE_S[side]:
+            if red_king_pos in tables[x][y].reachPlaceB:
+                return False
+    return True
 
 
 # knight_pos = Position(1,1)
@@ -271,18 +285,28 @@ class MainGame:
             # time.sleep(0.1)
             screen.fill(BLACK)
             screen.blit(pictureList["main_table"], pictureList["main_table"].get_rect())
-            for chessman in chessmanList:
-                screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
+            for x, y in A_TABLE:
+                if self.table[x][y] != null_chessman:
+                    chessman = self.table[x][y]
+                    screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
             pygame.display.flip()
 
     def eventJudge(self):
+        time.sleep(0.1)
         eventList = pygame.event.get()
         for event in eventList:
             if event.type == pygame.QUIT:
                 exit(0)
-            # elif event.type == pygame.MOUSEBUTTONDOWN:
-            #     pos = pygame.mouse.get_pos()
-            #
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
+                # print(pos,chessPos)
+                if chessPos not in A_TABLE or self.table[chessPos[0]][chessPos[1]] == null_chessman:
+                    return
+                else:
+                    pictureList, chessmanList = self.initTable()
+                    xChessman = self.table[chessPos[0]][chessPos[1]]
+                    xChessman.display = pictureList[nameProcess(xChessman.name) + "_select"]
 
 
 newGame = MainGame("WOOD", "WOOD")
