@@ -292,8 +292,8 @@ class MainGame:
             if xChessman is not None:
                 if xChessman != null_chessman:
                     circles = []
-                    for x, y in xChessman.reachPlace(self.table):
-                        print(xChessman.reachPlace(self.table))
+                    for x, y in xChessman.reachPlaceB(self.table):
+                        print(xChessman.reachPlaceB(self.table))
                         print(CONVERT_P(x, y))
                         # pygame.draw.circle(screen, BLUE, CONVERT_P(x, y), 4, 4)
                         circles.append(CONVERT_P(x, y))
