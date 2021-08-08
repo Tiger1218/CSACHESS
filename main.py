@@ -1,38 +1,12 @@
-'''
+"""
 Main Activity programmed by tiger1218(tiger1218@foxmail.com) , 2021/08/07
+"""
+import time
 
-
-
-'''
 import pygame
 import sys
-
-
-def initPictures(chess_themes, table_themes):
-    main_table = pygame.image.load("res/" + table_themes + ".gif")
-    icon = pygame.image.load("res/icon.GIF")
-    pictureDir = "res/" + chess_themes + "/"
-    black_rook = pygame.image.load(pictureDir + "BR.GIF")
-    black_knight = pygame.image.load(pictureDir + "BKN.GIF")
-    black_bishop = pygame.image.load(pictureDir + "BB.GIF")
-    black_guardian = pygame.image.load(pictureDir + "BG.GIF")
-    black_king = pygame.image.load(pictureDir + "BK.GIF")
-    black_cannon = pygame.image.load(pictureDir + "BC.GIF")
-    black_soldier = pygame.image.load(pictureDir + "BS.GIF")
-    red_rook = pygame.image.load(pictureDir + "RR.GIF")
-    red_knight = pygame.image.load(pictureDir + "RKN.GIF")
-    red_bishop = pygame.image.load(pictureDir + "RB.GIF")
-    red_guardian = pygame.image.load(pictureDir + "RG.GIF")
-    red_king = pygame.image.load(pictureDir + "RK.GIF")
-    red_cannon = pygame.image.load(pictureDir + "RC.GIF")
-    red_soldier = pygame.image.load(pictureDir + "RS.GIF")
-
-    return {"main_table": main_table, "icon": icon, "black_rook": black_rook, "black_knight": black_knight,
-            "black_bishop": black_bishop, "black_guardian": black_guardian, "black_king": black_king,
-            "black_cannon": black_cannon, "black_soldier": black_soldier, "red_rook": red_rook,
-            "red_knight": red_knight, "red_bishop": red_bishop, "red_guardian": red_guardian,
-            "red_king": red_king, "red_cannon": red_cannon, "red_soldier": red_soldier
-            }
+import numpy
+from utils import *
 
 
 # pictureList = initPictures()
@@ -48,30 +22,108 @@ class Chessman:
         self.pos = pos
         self.alive = True
 
+    def __eq__(self, other):
+        return self.side == other.side and self.name == other.name and self.pos == other.pos
+
+
+null_chessman = Chessman("null", "null", "null", (0, 0))
+
 
 # 车
 class Rook(Chessman):
-    pass
+    def reachPlace(self, tables):
+        reachList = []
+        for row in range(self.pos[0], 8 + 1):
+            if tables[row][self.pos[1]] != null_chessman:
+                if tables[row][self.pos[1]].side != self.side:
+                    reachList.append((row, self.pos[1]))
+                break
+            reachList.append((row, self.pos[1]))
+        for row in range(self.pos[0], -1, -1):
+            if tables[row][self.pos[1]] != null_chessman:
+                if tables[row][self.pos[1]].side != self.side:
+                    reachList.append((row, self.pos[1]))
+                break
+            reachList.append((row, self.pos[1]))
+        for line in range(self.pos[1], 9 + 1):
+            if tables[self.pos[0]][line] != null_chessman:
+                if tables[self.pos[0]][line].side != self.side:
+                    reachList.append((self.pos[0], line))
+                break
+            reachList.append((self.pos[0], line))
+        for line in range(self.pos[1], -1, -1):
+            if tables[self.pos[0]][line] != null_chessman:
+                if tables[self.pos[0]][line].side != self.side:
+                    reachList.append((self.pos[0], line))
+                break
+            reachList.append((self.pos[0], line))
+        reachList.remove((self.pos[0], self.pos[1]))
 
 
 # 马
 class Knight(Chessman):
-    pass
+    def reachPlace(self, tables):
+        reachListx = [(self.pos[0] + 1, self.pos[1] + 2, self.pos[0], self.pos[1] + 1),
+                      (self.pos[0] + 1, self.pos[1] - 2, self.pos[0], self.pos[1] - 1),
+                      (self.pos[0] - 1, self.pos[1] - 2, self.pos[0], self.pos[1] - 1),
+                      (self.pos[0] - 1, self.pos[1] + 2, self.pos[0], self.pos[1] + 1),
+                      (self.pos[0] + 2, self.pos[1] - 1, self.pos[0] + 1, self.pos[1]),
+                      (self.pos[0] + 2, self.pos[1] + 1, self.pos[0] + 1, self.pos[1]),
+                      (self.pos[0] - 2, self.pos[1] - 1, self.pos[0] - 1, self.pos[1]),
+                      (self.pos[0] - 2, self.pos[1] + 1, self.pos[0] - 1, self.pos[1])]
+        reachList = []
+        for reach in reachListx:
+            if (reach[0], reach[1]) in A_TABLE:
+                if (tables[reach[0]][reach[1]] == null_chessman or tables[reach[0]][reach[1]].side != self.side) \
+                        and tables[reach[2]][reach[3]] == null_chessman:
+                    reachList.append((reach[0], reach[1]))
+        return reachList
 
 
 # 相
 class Bishop(Chessman):
-    pass
+    def reachPlace(self, tables):
+        reachListx = [(self.pos[0] + 2, self.pos[1] + 2, self.pos[0] + 1, self.pos[1] + 1),
+                      (self.pos[0] - 2, self.pos[1] + 2, self.pos[0] - 1, self.pos[1] + 1),
+                      (self.pos[0] + 2, self.pos[1] - 2, self.pos[0] + 1, self.pos[1] - 1),
+                      (self.pos[0] - 2, self.pos[1] - 2, self.pos[0] - 1, self.pos[1] - 1)]
+        reachList = []
+        for reach in reachListx:
+            if (reach[0], reach[1]) in S_TABLE[self.side]:
+                if (tables[reach[0]][reach[1]] == null_chessman or tables[reach[0]][reach[1]].side != self.side) \
+                        and tables[reach[2]][reach[3]] == null_chessman:
+                    reachList.append((reach[0], reach[1]))
+        return reachList
 
 
 # 士
 class Guardian(Chessman):
-    pass
+    def reachPlace(self, tables):
+        reachListx = [(self.pos[0] + 1, self.pos[1] + 1),
+                      (self.pos[0] - 1, self.pos[1] + 1),
+                      (self.pos[0] + 1, self.pos[1] - 1),
+                      (self.pos[0] - 1, self.pos[1] - 1)]
+        reachList = []
+        for reach in reachListx:
+            if reach in S_PALACE[self.side]:
+                if tables[reach[0]][reach[1]].side != self.side:
+                    reachList.append((reach[0], reach[1]))
+        return reachList
 
 
 # 帅
 class King(Chessman):
-    pass
+    def reachPlace(self, tables):
+        reachListx = [(self.pos[0] , self.pos[1] + 1),
+                      (self.pos[0] - 1, self.pos[1]),
+                      (self.pos[0] + 1, self.pos[1]),
+                      (self.pos[0] , self.pos[1] - 1)]
+        reachList = []
+        for reach in reachListx:
+            if reach in S_PALACE[self.side]:
+                if tables[reach[0]][reach[1]].side != self.side:
+                    reachList.append((reach[0], reach[1]))
+        return reachList
 
 
 # 炮
@@ -92,6 +144,7 @@ class MainGame:
     def __init__(self, chess_theme, table_theme):
         self.chess_theme = chess_theme
         self.table_theme = table_theme
+        self.table = numpy.full((9, 10), null_chessman)
 
     def initTable(self):
         # 初始化棋子和棋子的位置
@@ -105,7 +158,7 @@ class MainGame:
                         Guardian("black", "black_guardian_left", pictureList["black_guardian"], (5, 9)),
                         Guardian("black", "black_guardian_right", pictureList["black_guardian"], (3, 9)),
                         King("black", "black_king", pictureList["black_king"], (4, 9)),
-                        Cannon("black", "black_cannon_left", pictureList["black_cannon"] , (7, 7)),
+                        Cannon("black", "black_cannon_left", pictureList["black_cannon"], (7, 7)),
                         Cannon("black", "black_cannon_right", pictureList["black_cannon"], (1, 7)),
                         Soldier("black", "black_soldier_1", pictureList["black_soldier"], (0, 6)),
                         Soldier("black", "black_soldier_2", pictureList["black_soldier"], (2, 6)),
@@ -128,6 +181,8 @@ class MainGame:
                         Soldier("red", "red_soldier_3", pictureList["red_soldier"], (4, 3)),
                         Soldier("red", "red_soldier_4", pictureList["red_soldier"], (6, 3)),
                         Soldier("red", "red_soldier_5", pictureList["red_soldier"], (8, 3))]
+        for chessman in chessmanList:
+            self.table[chessman.pos[0]][chessman.pos[1]] = chessman
         return pictureList, chessmanList
 
     def showTables(self):
@@ -138,14 +193,22 @@ class MainGame:
         pygame.display.set_icon(pictureList["icon"])
         pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v0.1 by tiger1218")
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit(0)
-            screen.fill((0, 0, 0))
+            self.eventJudge()
+            # time.sleep(0.1)
+            screen.fill(BLACK)
             screen.blit(pictureList["main_table"], pictureList["main_table"].get_rect())
             for chessman in chessmanList:
                 screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
             pygame.display.flip()
+
+    def eventJudge(self):
+        eventList = pygame.event.get()
+        for event in eventList:
+            if event.type == pygame.QUIT:
+                exit(0)
+            # elif event.type == pygame.MOUSEBUTTONDOWN:
+            #     pos = pygame.mouse.get_pos()
+            #
 
 
 newGame = MainGame("WOOD", "WOOD")
