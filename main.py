@@ -25,13 +25,22 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
+    def move(self, tables, pos):
+        tables[self.pos[0]][self.pos[1]] = null_chessman
+        tables[pos[0]][pos[1]] = self
+        return tables
+
+    def moveChecking(self, tables, pos):
+        newTable = self.move(tables, pos)
+        return winnerChecking(tables)
+
 
 null_chessman = Chessman("null", "null", "null", (0, 0))
 
 
 # 车
 class Rook(Chessman):
-    def reachPlace(self, tables):
+    def reachPlaceB(self, tables):
         reachList = []
         for row in range(self.pos[0], 8 + 1):
             if tables[row][self.pos[1]] != null_chessman:
@@ -58,11 +67,12 @@ class Rook(Chessman):
                 break
             reachList.append((self.pos[0], line))
         reachList.remove((self.pos[0], self.pos[1]))
+        return reachList
 
 
 # 马
 class Knight(Chessman):
-    def reachPlace(self, tables):
+    def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 1, self.pos[1] + 2, self.pos[0], self.pos[1] + 1),
                       (self.pos[0] + 1, self.pos[1] - 2, self.pos[0], self.pos[1] - 1),
                       (self.pos[0] - 1, self.pos[1] - 2, self.pos[0], self.pos[1] - 1),
@@ -82,7 +92,7 @@ class Knight(Chessman):
 
 # 相
 class Bishop(Chessman):
-    def reachPlace(self, tables):
+    def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 2, self.pos[1] + 2, self.pos[0] + 1, self.pos[1] + 1),
                       (self.pos[0] - 2, self.pos[1] + 2, self.pos[0] - 1, self.pos[1] + 1),
                       (self.pos[0] + 2, self.pos[1] - 2, self.pos[0] + 1, self.pos[1] - 1),
@@ -98,7 +108,7 @@ class Bishop(Chessman):
 
 # 士
 class Guardian(Chessman):
-    def reachPlace(self, tables):
+    def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 1, self.pos[1] + 1),
                       (self.pos[0] - 1, self.pos[1] + 1),
                       (self.pos[0] + 1, self.pos[1] - 1),
@@ -113,11 +123,11 @@ class Guardian(Chessman):
 
 # 帅
 class King(Chessman):
-    def reachPlace(self, tables):
-        reachListx = [(self.pos[0] , self.pos[1] + 1),
+    def reachPlaceB(self, tables):
+        reachListx = [(self.pos[0], self.pos[1] + 1),
                       (self.pos[0] - 1, self.pos[1]),
                       (self.pos[0] + 1, self.pos[1]),
-                      (self.pos[0] , self.pos[1] - 1)]
+                      (self.pos[0], self.pos[1] - 1)]
         reachList = []
         for reach in reachListx:
             if reach in S_PALACE[self.side]:
@@ -128,12 +138,76 @@ class King(Chessman):
 
 # 炮
 class Cannon(Chessman):
-    pass
+    def reachPlaceB(self, tables):
+        reachList = []
+        flag = False
+        for row in range(self.pos[0], 8 + 1):
+            if tables[row][self.pos[1]] != null_chessman:
+                if flag:
+                    if tables[row][self.pos[1]].side != self.side:
+                        reachList.append((row, self.pos[1]))
+                else:
+                    flag = True
+            if not flag:
+                reachList.append((row, self.pos[1]))
+        flag = False
+        for row in range(self.pos[0], -1, -1):
+            if tables[row][self.pos[1]] != null_chessman:
+                if flag:
+                    if tables[row][self.pos[1]].side != self.side:
+                        reachList.append((row, self.pos[1]))
+                else:
+                    flag = True
+            if not flag:
+                reachList.append((row, self.pos[1]))
+        flag = False
+        for line in range(self.pos[1], 9 + 1):
+            if tables[self.pos[0]][line] != null_chessman:
+                if flag:
+                    if tables[self.pos[0]][line].side != self.side:
+                        reachList.append((self.pos[0], line))
+                else:
+                    flag = True
+            if not flag:
+                reachList.append((self.pos[0], line))
+        flag = False
+        for line in range(self.pos[1], -1, -1):
+            if tables[self.pos[0]][line] != null_chessman:
+                if flag:
+                    if tables[self.pos[0]][line].side != self.side:
+                        reachList.append((self.pos[0], line))
+                else:
+                    flag = True
+            if not flag:
+                reachList.append((self.pos[0], line))
+        reachList.remove((self.pos[0], self.pos[1]))
+        return reachList
 
 
 # 兵
 class Soldier(Chessman):
-    pass
+    def reachPlaceB(self, tables):
+        reachList = []
+        if (self.pos[0], self.pos[1]) in S_TABLE[self.side]:
+            if tables[self.pos[0]][self.pos[1] + S_FORWARD[self.side]].side != self.side:
+                reachList.append(self.pos[0], self.pos[1] + S_FORWARD[self.side])
+                return reachList
+        else:
+            reachListx = [(self.pos[0], self.pos[1] + S_FORWARD[self.side]),
+                          (self.pos[0] - 1, self.pos[1]),
+                          (self.pos[0] + 1, self.pos[1])]
+            for reach in reachListx:
+                if reach in A_TABLE:
+                    if tables[reach[0]][reach[1]].side != self.side:
+                        reachList.append(reach[0], reach[1])
+            return reachList
+
+
+def winnerChecking(tables, side):
+    red_king_pos = (0, 0)
+    for x, y in R_PALACE:
+        if tables[x][y].name == "red_king":
+            red_king_pos = (x, y)
 
 
 # knight_pos = Position(1,1)

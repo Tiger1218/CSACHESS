@@ -8,6 +8,7 @@ S_TABLE = {"black" : B_TABLE , "red" : R_TABLE}
 B_PALACE = [(x, y) for x in range(3, 6) for y in range(3)]
 R_PALACE = [(x, y) for x in range(3, 6) for y in range(7, 10)]
 S_PALACE = {"black" : B_PALACE , "red" : R_PALACE}
+S_FORWARD = {"black" : -1 , "red" : 1}
 
 
 def initPictures(chess_themes, table_themes):
