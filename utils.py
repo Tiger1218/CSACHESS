@@ -1,15 +1,21 @@
 import pygame
 
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 A_TABLE = [(x, y) for x in range(9) for y in range(10)]
 R_TABLE = [(x, y) for x in range(9) for y in range(5)]
 B_TABLE = [(x, y) for x in range(9) for y in range(5, 10)]
 S_TABLE = {"black": B_TABLE, "red": R_TABLE}
-B_PALACE = [(x, y) for x in range(3, 6) for y in range(3)]
-R_PALACE = [(x, y) for x in range(3, 6) for y in range(7, 10)]
+B_PALACE = [(x, y) for x in range(3, 6) for y in range(7, 10)]
+R_PALACE = [(x, y) for x in range(3, 6) for y in range(3)]
 S_PALACE = {"black": B_PALACE, "red": R_PALACE}
 S_FORWARD = {"black": -1, "red": 1}
 REVERSE_S = {"black": "red", "red": "black"}
+
+
+def CONVERT_P(x, y):
+    return 34 + x * 57, (9 - y) * 57 + 31
 
 
 def nameProcess(string):

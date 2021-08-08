@@ -25,9 +25,6 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
-    def reachPlaceB(self, tables):
-        return False
-
     def move(self, tables, pos):
         tables[self.pos[0]][self.pos[1]] = null_chessman
         tables[pos[0]][pos[1]] = self
@@ -38,10 +35,13 @@ class Chessman:
         for reach in self.reachPlaceB(tables):
             if not checkmateChecking(self.move(tables, reach), self.side):
                 reachList.append(reach)
+        return reachList
 
     # def moveChecking(self, tables, pos):
     #     newTable = self.move(tables, pos)
     #     return winnerChecking(tables)
+    def reachPlaceB(self, tables):
+        pass
 
 
 null_chessman = Chessman("null", "null", "null", (0, 0))
@@ -51,31 +51,31 @@ null_chessman = Chessman("null", "null", "null", (0, 0))
 class Rook(Chessman):
     def reachPlaceB(self, tables):
         reachList = []
-        for row in range(self.pos[0], 8 + 1):
+        for row in range(self.pos[0] + 1, 8 + 1):
             if tables[row][self.pos[1]] != null_chessman:
                 if tables[row][self.pos[1]].side != self.side:
                     reachList.append((row, self.pos[1]))
                 break
             reachList.append((row, self.pos[1]))
-        for row in range(self.pos[0], -1, -1):
+        for row in range(self.pos[0] - 1, -1, -1):
             if tables[row][self.pos[1]] != null_chessman:
                 if tables[row][self.pos[1]].side != self.side:
                     reachList.append((row, self.pos[1]))
                 break
             reachList.append((row, self.pos[1]))
-        for line in range(self.pos[1], 9 + 1):
+        for line in range(self.pos[1] + 1, 9 + 1):
             if tables[self.pos[0]][line] != null_chessman:
                 if tables[self.pos[0]][line].side != self.side:
                     reachList.append((self.pos[0], line))
                 break
             reachList.append((self.pos[0], line))
-        for line in range(self.pos[1], -1, -1):
+        for line in range(self.pos[1] - 1, -1, -1):
             if tables[self.pos[0]][line] != null_chessman:
                 if tables[self.pos[0]][line].side != self.side:
                     reachList.append((self.pos[0], line))
                 break
             reachList.append((self.pos[0], line))
-        reachList.remove((self.pos[0], self.pos[1]))
+        # reachList.remove((self.pos[0], self.pos[1]))
         return reachList
 
 
@@ -150,46 +150,50 @@ class Cannon(Chessman):
     def reachPlaceB(self, tables):
         reachList = []
         flag = False
-        for row in range(self.pos[0], 8 + 1):
+        for row in range(self.pos[0] + 1, 8 + 1):
             if tables[row][self.pos[1]] != null_chessman:
                 if flag:
                     if tables[row][self.pos[1]].side != self.side:
                         reachList.append((row, self.pos[1]))
+                        break
                 else:
                     flag = True
             if not flag:
                 reachList.append((row, self.pos[1]))
         flag = False
-        for row in range(self.pos[0], -1, -1):
+        for row in range(self.pos[0] - 1, -1, -1):
             if tables[row][self.pos[1]] != null_chessman:
                 if flag:
                     if tables[row][self.pos[1]].side != self.side:
                         reachList.append((row, self.pos[1]))
+                        break
                 else:
                     flag = True
             if not flag:
                 reachList.append((row, self.pos[1]))
         flag = False
-        for line in range(self.pos[1], 9 + 1):
+        for line in range(self.pos[1] + 1, 9 + 1):
             if tables[self.pos[0]][line] != null_chessman:
                 if flag:
                     if tables[self.pos[0]][line].side != self.side:
                         reachList.append((self.pos[0], line))
+                        break
                 else:
                     flag = True
             if not flag:
                 reachList.append((self.pos[0], line))
         flag = False
-        for line in range(self.pos[1], -1, -1):
+        for line in range(self.pos[1] - 1, -1, -1):
             if tables[self.pos[0]][line] != null_chessman:
                 if flag:
                     if tables[self.pos[0]][line].side != self.side:
                         reachList.append((self.pos[0], line))
+                        break
                 else:
                     flag = True
             if not flag:
                 reachList.append((self.pos[0], line))
-        reachList.remove((self.pos[0], self.pos[1]))
+        # reachList.remove((self.pos[0], self.pos[1]))
         return reachList
 
 
@@ -214,14 +218,14 @@ class Soldier(Chessman):
 
 def checkmateChecking(tables, side):
     red_king_pos = (0, 0)
-    for x, y in R_PALACE:
+    for x, y in S_PALACE[side]:
         if tables[x][y].name == side + "_king":
             red_king_pos = (x, y)
     for x, y in A_TABLE:
         if tables[x][y].side == REVERSE_S[side]:
-            if red_king_pos in tables[x][y].reachPlaceB:
-                return False
-    return True
+            if red_king_pos in tables[x][y].reachPlaceB(tables):
+                return True
+    return False
 
 
 # knight_pos = Position(1,1)
@@ -245,7 +249,7 @@ class MainGame:
                         Bishop("black", "black_bishop_right", pictureList["black_bishop"], (2, 9)),
                         Guardian("black", "black_guardian_left", pictureList["black_guardian"], (5, 9)),
                         Guardian("black", "black_guardian_right", pictureList["black_guardian"], (3, 9)),
-                        King("black", "black_king", pictureList["black_king"], (4, 9)),
+                        King("black", "black_king_", pictureList["black_king"], (4, 9)),
                         Cannon("black", "black_cannon_left", pictureList["black_cannon"], (7, 7)),
                         Cannon("black", "black_cannon_right", pictureList["black_cannon"], (1, 7)),
                         Soldier("black", "black_soldier_1", pictureList["black_soldier"], (0, 6)),
@@ -261,7 +265,7 @@ class MainGame:
                         Bishop("red", "red_bishop_right", pictureList["red_bishop"], (6, 0)),
                         Guardian("red", "red_guardian_left", pictureList["red_guardian"], (3, 0)),
                         Guardian("red", "red_guardian_right", pictureList["red_guardian"], (5, 0)),
-                        King("red", "red_king", pictureList["red_king"], (4, 0)),
+                        King("red", "red_king_", pictureList["red_king"], (4, 0)),
                         Cannon("red", "red_cannon_left", pictureList["red_cannon"], (1, 2)),
                         Cannon("red", "red_cannon_right", pictureList["red_cannon"], (7, 2)),
                         Soldier("red", "red_soldier_1", pictureList["red_soldier"], (0, 3)),
@@ -280,8 +284,20 @@ class MainGame:
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(pictureList["icon"])
         pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v0.1 by tiger1218")
+        circles = []
         while True:
-            self.eventJudge()
+            xChessman = self.eventJudge()
+            # print(xChessman)
+
+            if xChessman is not None:
+                if xChessman != null_chessman:
+                    circles = []
+                    for x, y in xChessman.reachPlace(self.table):
+                        print(xChessman.reachPlace(self.table))
+                        print(CONVERT_P(x, y))
+                        # pygame.draw.circle(screen, BLUE, CONVERT_P(x, y), 4, 4)
+                        circles.append(CONVERT_P(x, y))
+                        # pygame.display.flip()
             # time.sleep(0.1)
             screen.fill(BLACK)
             screen.blit(pictureList["main_table"], pictureList["main_table"].get_rect())
@@ -289,6 +305,8 @@ class MainGame:
                 if self.table[x][y] != null_chessman:
                     chessman = self.table[x][y]
                     screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
+            for circle in circles:
+                pygame.draw.circle(screen, BLUE, (circle[0], circle[1]), 8, 8)
             pygame.display.flip()
 
     def eventJudge(self):
@@ -302,11 +320,14 @@ class MainGame:
                 chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
                 # print(pos,chessPos)
                 if chessPos not in A_TABLE or self.table[chessPos[0]][chessPos[1]] == null_chessman:
-                    return
+                    return null_chessman
                 else:
                     pictureList, chessmanList = self.initTable()
                     xChessman = self.table[chessPos[0]][chessPos[1]]
                     xChessman.display = pictureList[nameProcess(xChessman.name) + "_select"]
+                    self.table[chessPos[0]][chessPos[1]] = xChessman
+                    return xChessman
+        return null_chessman
 
 
 newGame = MainGame("WOOD", "WOOD")
