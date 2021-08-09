@@ -27,6 +27,9 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
+    def __copy__(self):
+        return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def premove(self, pos, tables):
         eat = False
         if tables[pos[0]][pos[1]] != null_chessman:
@@ -37,14 +40,20 @@ class Chessman:
         self.pos = pos
 
     def reachPlace(self, tables):
+        newTable = numpy.full((9, 10), null_chessman)
         reachList = []
+        for x, y in A_TABLE:
+            newTable[x][y] = tables[x][y]
         for reach in self.reachPlaceB(tables):
+            copyTable = newTable
             oPos = self.pos
-            table = tables
-            table[oPos[0]][oPos[1]].move(reach)
-            if not checkmateChecking(table, self.side):
+            oldChess = copyTable[reach[0]][reach[1]]
+            copyTable[oPos[0]][oPos[1]] = null_chessman
+            copyTable[reach[0]][reach[1]] = self
+            if not checkmateChecking(copyTable, self.side):
                 reachList.append(reach)
-            table[oPos[0]][oPos[1]].move(oPos)
+            copyTable[oPos[0]][oPos[1]] = self
+            copyTable[reach[0]][reach[1]] = oldChess
 
         return reachList
 
@@ -237,9 +246,11 @@ def checkmateChecking(tables, side):
                 chessList.append(tables[x][y])
             if "king" in tables[x][y].name and tables[x][y].side == side:
                 posK = (x, y)
+                print(posK)
             if "king" in tables[x][y].name and tables[x][y].side == REVERSE_S[side]:
                 posOK = (x, y)
     for chessman in chessList:
+        print(chessman.name, chessman.reachPlaceB(tables))
         if posK in chessman.reachPlaceB(tables):
             return True
     return False
@@ -404,8 +415,8 @@ class MainGame:
         self.chessman[rNum].move(rMov)
 
     def debugMoving(self):
-        posMovFrom = int(input("posMovFrom1")) , int(input("posMovFrom2"))
-        posMovTo = int(input("posMovTo1")) , int(input("posMovTo2"))
+        posMovFrom = int(input("posMovFrom1")), int(input("posMovFrom2"))
+        posMovTo = int(input("posMovTo1")), int(input("posMovTo2"))
         for iNum in range(len(self.chessman)):
             if self.chessman[iNum].pos == posMovFrom:
                 eat = self.chessman[iNum].premove(posMovTo, self.table)
@@ -414,6 +425,7 @@ class MainGame:
                         if self.chessman[xNum].pos == posMovTo:
                             self.chessman[xNum] = null_chessman
                 self.chessman[iNum].move(posMovTo)
+        self.flashTable()
 
 
 newGame = MainGame(chess_theme="WOOD", table_theme="WOOD")
