@@ -26,6 +26,12 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
+    def premove(self, pos, tables):
+        eat = False
+        if tables[pos[0]][pos[1]] != null_chessman:
+            eat = True
+        return eat
+
     def move(self, pos):
         self.pos = pos
 
@@ -40,7 +46,7 @@ class Chessman:
     #     newTable = self.move(tables, pos)
     #     return winnerChecking(tables)
     def reachPlaceB(self, tables):
-        pass
+        return []
 
 
 null_chessman = Chessman("null", "null", "null", (0, 0))
@@ -218,7 +224,7 @@ class Soldier(Chessman):
 def checkmateChecking(tables, side):
     red_king_pos = (0, 0)
     for x, y in S_PALACE[side]:
-        if tables[x][y].name == side + "_king":
+        if tables[x][y].name == side + "_king_":
             red_king_pos = (x, y)
     for x, y in A_TABLE:
         if tables[x][y].side == REVERSE_S[side]:
@@ -246,10 +252,17 @@ class MainGame:
         self.selects = Queue()
 
     def flashTable(self):
-        for x ,y in A_TABLE:
+        for x, y in A_TABLE:
             self.table[x][y] = null_chessman
         for chessman in self.chessman:
             self.table[chessman.pos[0]][chessman.pos[1]] = chessman
+
+    def flashList(self):
+        newList = []
+        for x, y in A_TABLE:
+            if self.table[x][y] != null_chessman:
+                newList.append(self.table[x][y])
+        self.chessman = newList
 
     def initTable(self):
         # 初始化棋子和棋子的位置
@@ -308,6 +321,35 @@ class MainGame:
                 pygame.draw.circle(screen, BLUE, (circle[0], circle[1]), 8, 8)
             pygame.display.flip()
 
+    def humanMoving(self, side):
+        # print("Human moving!")
+        pos = pygame.mouse.get_pos()
+        chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
+        # print(chessPos)
+        if chessPos not in A_TABLE:
+            return null_chessman
+        if self.selects.empty():
+            for i in range(len(self.chessman)):
+                if self.chessman[i].pos == chessPos and self.chessman[i].side == side:
+                    self.chessman[i].display = self.pictures[nameProcess(self.chessman[i].name) + "_select"]
+                    self.selects.put(i)
+                    return self.chessman[i]
+        else:
+            self.circles = []
+            iNum = self.selects.get()
+            self.chessman[iNum].display = self.pictures[nameProcess(self.chessman[iNum].name)]
+            if chessPos not in self.chessman[iNum].reachPlaceB(self.table):
+                return null_chessman
+            else:
+                eat = self.chessman[iNum].premove(chessPos, self.table)
+                if eat:
+                    for xNum in range(len(self.chessman)):
+                        if self.chessman[xNum].pos == chessPos:
+                            self.chessman[xNum] = null_chessman
+                self.chessman[iNum].move(chessPos)
+                return Chessman(1000, 1000, 1000, 1000)
+        return null_chessman
+
     def eventJudge(self):
         time.sleep(0.1)
         eventList = pygame.event.get()
@@ -315,28 +357,39 @@ class MainGame:
             if event.type == pygame.QUIT:
                 exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
-                if chessPos not in A_TABLE:
+                if not self.selects.empty():
+                    self.side = REVERSE_S[self.side]
+                    tChessman = self.humanMoving(REVERSE_S[self.side])
+                    if tChessman == null_chessman:
+                        self.side = REVERSE_S[self.side]
                     return null_chessman
-                if self.selects.empty():
-                    for i in range(len(self.chessman)):
-                        if self.chessman[i].pos == chessPos and self.chessman[i].side == self.side:
-                            self.chessman[i].display = self.pictures[nameProcess(self.chessman[i].name) + "_select"]
-                            self.selects.put(i)
-                            return self.chessman[i]
                 else:
-                    # print("MOVEING")
-                    self.circles = []
-                    iNum = self.selects.get()
-                    self.chessman[iNum].display = self.pictures[nameProcess(self.chessman[iNum].name)]
-                    if chessPos not in self.chessman[iNum].reachPlaceB(self.table):
-                        return null_chessman
-                    else:
-                        self.chessman[iNum].move(chessPos)
+                    return self.humanMoving(self.side)
+            else:
+                if self.side == "black":
+                    self.computerMoving()
+                    self.side = REVERSE_S[self.side]
+                # self.humanMoving(REVERSE_S[self.side])
 
         return null_chessman
 
+    def computerMoving(self):
+        canary = 0
+        rNum = __import__("random").randint(0, len(self.chessman) // 2)
+        while len(self.chessman[rNum].reachPlaceB(self.table)) == 0 or self.chessman[rNum].side == "red":
+            if canary > 10000:
+                return
+            canary = canary + 1
+            rNum = __import__("random").randint(0, len(self.chessman) // 2)
+        rMov = self.chessman[rNum].reachPlaceB(self.table) \
+            [__import__("random").randint(0, len(self.chessman[rNum].reachPlaceB(self.table)) - 1)]
+        eat = self.chessman[rNum].premove(rMov, self.table)
+        if eat:
+            for xNum in range(len(self.chessman)):
+                if self.chessman[xNum].pos == rMov:
+                    self.chessman[xNum] = null_chessman
+        self.chessman[rNum].move(rMov)
 
-newGame = MainGame("WOOD", "WOOD")
+
+newGame = MainGame(chess_theme="DELICATE", table_theme="WHITE")
 newGame.showTables()
