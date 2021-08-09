@@ -5,7 +5,10 @@ import time
 
 import pygame
 import sys
+from tkinter import messagebox
+from tkinter import *
 import numpy
+import datetime
 from utils import *
 from queue import Queue
 
@@ -246,12 +249,15 @@ def checkmateChecking(tables, side):
                 chessList.append(tables[x][y])
             if "king" in tables[x][y].name and tables[x][y].side == side:
                 posK = (x, y)
-                print(posK)
+                # print(posK)
             if "king" in tables[x][y].name and tables[x][y].side == REVERSE_S[side]:
                 posOK = (x, y)
     for chessman in chessList:
-        print(chessman.name, chessman.reachPlaceB(tables))
-        if posK in chessman.reachPlaceB(tables):
+        # print(chessman.name, chessman.reachPlaceB(tables))
+        if (chessman.reachPlaceB(tables)) is None:
+            pass
+        elif posK in chessman.reachPlaceB(tables):
+            # print("checkmate!")
             return True
     return False
 
@@ -260,12 +266,32 @@ def checkmateChecking(tables, side):
 # knight = Chessman("black", "马", "马", (1, 1))
 # print(knight.side)
 
+def showVictory(side):
+    print("{0} victory !".format(side))
+    Tk().wm_withdraw()
+    messagebox.showinfo("{0} victory !".format(side), 'OK')
+    exit(0)
+
+
+def checkDeath(tables, side):
+    for x, y in A_TABLE:
+        if tables[x][y] != null_chessman:
+            if tables[x][y].side == side:
+                print(tables[x][y].name, tables[x][y].reachPlace(tables))
+                if len(tables[x][y].reachPlace(tables)) > 0:
+                    return False
+    # for x, y in A_TABLE:
+    #     print(tables[x][y].name)
+    return True
+
+
 class MainGame:
-    def __init__(self, chess_theme, table_theme, side="red"):
+    def __init__(self, chess_theme, table_theme, side="red", debug_mode=False):
         self.side = side
         self.flips = False
         self.chess_theme = chess_theme
         self.table_theme = table_theme
+        self.debug_mode = debug_mode
         self.table = numpy.full((9, 10), null_chessman)
         self.chessman = []
         self.pictures = []
@@ -275,12 +301,16 @@ class MainGame:
         self.selects = Queue()
 
     def flashTable(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: flashTable()")
         for x, y in A_TABLE:
             self.table[x][y] = null_chessman
         for chessman in self.chessman:
             self.table[chessman.pos[0]][chessman.pos[1]] = chessman
 
     def flashList(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: flashList()")
         newList = []
         for x, y in A_TABLE:
             if self.table[x][y] != null_chessman:
@@ -288,6 +318,8 @@ class MainGame:
         self.chessman = newList
 
     def initTable(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: initTable()")
         # 初始化棋子和棋子的位置
         self.pictures = initPictures(self.chess_theme, self.table_theme)
         self.chessman = [Rook("black", "black_rook_left", self.pictures["black_rook"], (8, 9)),
@@ -324,14 +356,20 @@ class MainGame:
                          Soldier("red", "red_soldier_5", self.pictures["red_soldier"], (8, 3))]
 
     def showTables(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: showTables()")
         pygame.init()
         size = width, height = 521 + 300, 577
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(self.pictures["icon"])
-        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v1.9 by tiger1218")
+        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v2.1 by tiger1218")
         while True:
             NChessman = self.eventJudge()
             self.flashTable()
+            if checkDeath(self.table, "red"):
+                showVictory("black")
+            if checkDeath(self.table, "black"):
+                showVictory("red")
             if NChessman != null_chessman:
                 self.circles = [CONVERT_P(x, y) for x, y in NChessman.reachPlace(self.table)]
             screen.fill(BLACK)
@@ -345,7 +383,8 @@ class MainGame:
             pygame.display.flip()
 
     def humanMoving(self, side):
-        # print("Human moving!")
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: humanMoving({})".format(side))
         pos = pygame.mouse.get_pos()
         chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
         # print(chessPos)
@@ -392,11 +431,12 @@ class MainGame:
                 if self.side == "black":
                     self.computerMoving()
                     self.side = REVERSE_S[self.side]
-                # self.humanMoving(REVERSE_S[self.side])
 
         return null_chessman
 
     def computerMoving(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: computerMoving()")
         canary = 0
         rNum = __import__("random").randint(0, len(self.chessman) // 2)
         while len(self.chessman[rNum].reachPlace(self.table)) == 0 or self.chessman[rNum].side == "red":
@@ -428,5 +468,5 @@ class MainGame:
         self.flashTable()
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="WOOD")
+newGame = MainGame(chess_theme="WOOD", table_theme="WOOD", debug_mode=True)
 newGame.showTables()
