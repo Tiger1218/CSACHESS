@@ -15,6 +15,7 @@ from queue import Queue
 
 
 # 棋子（所有棋子的父类）
+
 class Chessman:
     def __init__(self, side, name, display, pos):
         self.side = side
@@ -38,8 +39,13 @@ class Chessman:
     def reachPlace(self, tables):
         reachList = []
         for reach in self.reachPlaceB(tables):
-            if not checkmateChecking(self.move(tables, reach), self.side):
+            oPos = self.pos
+            table = tables
+            table[oPos[0]][oPos[1]].move(reach)
+            if not checkmateChecking(table, self.side):
                 reachList.append(reach)
+            table[oPos[0]][oPos[1]].move(oPos)
+
         return reachList
 
     # def moveChecking(self, tables, pos):
@@ -229,6 +235,7 @@ def checkmateChecking(tables, side):
     for x, y in A_TABLE:
         if tables[x][y].side == REVERSE_S[side]:
             if red_king_pos in tables[x][y].reachPlaceB(tables):
+                print("checkmate!")
                 return True
     return False
 
@@ -310,7 +317,7 @@ class MainGame:
             NChessman = self.eventJudge()
             self.flashTable()
             if NChessman != null_chessman:
-                self.circles = [CONVERT_P(x, y) for x, y in NChessman.reachPlaceB(self.table)]
+                self.circles = [CONVERT_P(x, y) for x, y in NChessman.reachPlace(self.table)]
             screen.fill(BLACK)
             screen.blit(self.pictures["main_table"], self.pictures["main_table"].get_rect())
             for x, y in A_TABLE:
@@ -338,7 +345,7 @@ class MainGame:
             self.circles = []
             iNum = self.selects.get()
             self.chessman[iNum].display = self.pictures[nameProcess(self.chessman[iNum].name)]
-            if chessPos not in self.chessman[iNum].reachPlaceB(self.table):
+            if chessPos not in self.chessman[iNum].reachPlace(self.table):
                 return null_chessman
             else:
                 eat = self.chessman[iNum].premove(chessPos, self.table)
@@ -376,13 +383,14 @@ class MainGame:
     def computerMoving(self):
         canary = 0
         rNum = __import__("random").randint(0, len(self.chessman) // 2)
-        while len(self.chessman[rNum].reachPlaceB(self.table)) == 0 or self.chessman[rNum].side == "red":
+        while len(self.chessman[rNum].reachPlace(self.table)) == 0 or self.chessman[rNum].side == "red":
             if canary > 10000:
                 return
             canary = canary + 1
             rNum = __import__("random").randint(0, len(self.chessman) // 2)
-        rMov = self.chessman[rNum].reachPlaceB(self.table) \
-            [__import__("random").randint(0, len(self.chessman[rNum].reachPlaceB(self.table)) - 1)]
+        print(self.chessman[rNum].name)
+        rMov = self.chessman[rNum].reachPlace(self.table) \
+            [__import__("random").randint(0, len(self.chessman[rNum].reachPlace(self.table)) - 1)]
         eat = self.chessman[rNum].premove(rMov, self.table)
         if eat:
             for xNum in range(len(self.chessman)):
