@@ -9,6 +9,7 @@ import numpy
 from utils import *
 from queue import Queue
 
+
 # pictureList = initPictures()
 # print(pictureList['main_table'])
 
@@ -231,7 +232,7 @@ def checkmateChecking(tables, side):
 # print(knight.side)
 
 class MainGame:
-    def __init__(self, chess_theme, table_theme, side = "red"):
+    def __init__(self, chess_theme, table_theme, side="red"):
         self.side = side
         self.flips = False
         self.chess_theme = chess_theme
@@ -245,6 +246,8 @@ class MainGame:
         self.selects = Queue()
 
     def flashTable(self):
+        for x ,y in A_TABLE:
+            self.table[x][y] = null_chessman
         for chessman in self.chessman:
             self.table[chessman.pos[0]][chessman.pos[1]] = chessman
 
@@ -298,7 +301,7 @@ class MainGame:
             screen.fill(BLACK)
             screen.blit(self.pictures["main_table"], self.pictures["main_table"].get_rect())
             for x, y in A_TABLE:
-                if self.table[x][y] != null_chessman:
+                if self.table[x][y] != null_chessman and self.table[x][y].alive == True:
                     chessman = self.table[x][y]
                     screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
             for circle in self.circles:
@@ -318,7 +321,7 @@ class MainGame:
                     return null_chessman
                 if self.selects.empty():
                     for i in range(len(self.chessman)):
-                        if self.chessman[i].pos == chessPos:
+                        if self.chessman[i].pos == chessPos and self.chessman[i].side == self.side:
                             self.chessman[i].display = self.pictures[nameProcess(self.chessman[i].name) + "_select"]
                             self.selects.put(i)
                             return self.chessman[i]
@@ -331,7 +334,6 @@ class MainGame:
                         return null_chessman
                     else:
                         self.chessman[iNum].move(chessPos)
-
 
         return null_chessman
 
