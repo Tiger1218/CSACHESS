@@ -228,15 +228,20 @@ class Soldier(Chessman):
 
 
 def checkmateChecking(tables, side):
-    red_king_pos = (0, 0)
-    for x, y in S_PALACE[side]:
-        if tables[x][y].name == side + "_king_":
-            red_king_pos = (x, y)
+    chessList = []
+    posK = (0, 0)
+    posOK = (0, 0)
     for x, y in A_TABLE:
-        if tables[x][y].side == REVERSE_S[side]:
-            if red_king_pos in tables[x][y].reachPlaceB(tables):
-                print("checkmate!")
-                return True
+        if tables[x][y] != null_chessman:
+            if tables[x][y].side == REVERSE_S[side]:
+                chessList.append(tables[x][y])
+            if "king" in tables[x][y].name and tables[x][y].side == side:
+                posK = (x, y)
+            if "king" in tables[x][y].name and tables[x][y].side == REVERSE_S[side]:
+                posOK = (x, y)
+    for chessman in chessList:
+        if posK in chessman.reachPlaceB(tables):
+            return True
     return False
 
 
@@ -312,7 +317,7 @@ class MainGame:
         size = width, height = 521 + 300, 577
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(self.pictures["icon"])
-        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v0.1 by tiger1218")
+        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v1.9 by tiger1218")
         while True:
             NChessman = self.eventJudge()
             self.flashTable()
@@ -321,7 +326,7 @@ class MainGame:
             screen.fill(BLACK)
             screen.blit(self.pictures["main_table"], self.pictures["main_table"].get_rect())
             for x, y in A_TABLE:
-                if self.table[x][y] != null_chessman and self.table[x][y].alive == True:
+                if self.table[x][y] != null_chessman and self.table[x][y].alive:
                     chessman = self.table[x][y]
                     screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
             for circle in self.circles:
@@ -374,7 +379,7 @@ class MainGame:
                     return self.humanMoving(self.side)
             else:
                 if self.side == "black":
-                    self.computerMoving()
+                    self.debugMoving()
                     self.side = REVERSE_S[self.side]
                 # self.humanMoving(REVERSE_S[self.side])
 
@@ -388,7 +393,7 @@ class MainGame:
                 return
             canary = canary + 1
             rNum = __import__("random").randint(0, len(self.chessman) // 2)
-        print(self.chessman[rNum].name)
+        # print(self.chessman[rNum].name)
         rMov = self.chessman[rNum].reachPlace(self.table) \
             [__import__("random").randint(0, len(self.chessman[rNum].reachPlace(self.table)) - 1)]
         eat = self.chessman[rNum].premove(rMov, self.table)
@@ -398,6 +403,18 @@ class MainGame:
                     self.chessman[xNum] = null_chessman
         self.chessman[rNum].move(rMov)
 
+    def debugMoving(self):
+        posMovFrom = int(input("posMovFrom1")) , int(input("posMovFrom2"))
+        posMovTo = int(input("posMovTo1")) , int(input("posMovTo2"))
+        for iNum in range(len(self.chessman)):
+            if self.chessman[iNum].pos == posMovFrom:
+                eat = self.chessman[iNum].premove(posMovTo, self.table)
+                if eat:
+                    for xNum in range(len(self.chessman)):
+                        if self.chessman[xNum].pos == posMovTo:
+                            self.chessman[xNum] = null_chessman
+                self.chessman[iNum].move(posMovTo)
 
-newGame = MainGame(chess_theme="DELICATE", table_theme="WHITE")
+
+newGame = MainGame(chess_theme="WOOD", table_theme="WOOD")
 newGame.showTables()
