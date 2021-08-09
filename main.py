@@ -390,7 +390,7 @@ class MainGame:
                     return self.humanMoving(self.side)
             else:
                 if self.side == "black":
-                    self.debugMoving()
+                    self.computerMoving()
                     self.side = REVERSE_S[self.side]
                 # self.humanMoving(REVERSE_S[self.side])
 
