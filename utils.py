@@ -19,8 +19,6 @@ def CONVERT_P(x, y):
 
 
 def nameProcess(string):
-    newString = ""
-
     return string[0:string.rfind('_')]
 
 

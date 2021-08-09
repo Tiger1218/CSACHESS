@@ -7,7 +7,7 @@ import pygame
 import sys
 import numpy
 from utils import *
-
+from queue import Queue
 
 # pictureList = initPictures()
 # print(pictureList['main_table'])
@@ -25,11 +25,8 @@ class Chessman:
     def __eq__(self, other):
         return self.side == other.side and self.name == other.name and self.pos == other.pos
 
-    def move(self, tables, pos):
-        table = tables
-        table[self.pos[0]][self.pos[1]] = null_chessman
-        table[pos[0]][pos[1]] = self
-        return table
+    def move(self, pos):
+        self.pos = pos
 
     def reachPlace(self, tables):
         reachList = []
@@ -234,15 +231,18 @@ def checkmateChecking(tables, side):
 # print(knight.side)
 
 class MainGame:
-    def __init__(self, chess_theme, table_theme):
+    def __init__(self, chess_theme, table_theme, side = "red"):
+        self.side = side
         self.flips = False
         self.chess_theme = chess_theme
         self.table_theme = table_theme
         self.table = numpy.full((9, 10), null_chessman)
         self.chessman = []
         self.pictures = []
+        self.circles = []
         self.initTable()
         self.flashTable()
+        self.selects = Queue()
 
     def flashTable(self):
         for chessman in self.chessman:
@@ -290,22 +290,22 @@ class MainGame:
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(self.pictures["icon"])
         pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v0.1 by tiger1218")
-        circles = []
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit(0)
+            NChessman = self.eventJudge()
+            self.flashTable()
+            if NChessman != null_chessman:
+                self.circles = [CONVERT_P(x, y) for x, y in NChessman.reachPlaceB(self.table)]
             screen.fill(BLACK)
             screen.blit(self.pictures["main_table"], self.pictures["main_table"].get_rect())
             for x, y in A_TABLE:
                 if self.table[x][y] != null_chessman:
                     chessman = self.table[x][y]
                     screen.blit(chessman.display, (6 + chessman.pos[0] * 57, 577 - (60 + chessman.pos[1] * 57)))
-            for circle in circles:
+            for circle in self.circles:
                 pygame.draw.circle(screen, BLUE, (circle[0], circle[1]), 8, 8)
             pygame.display.flip()
 
-    def eventJudge(self, lastchessman=None):
+    def eventJudge(self):
         time.sleep(0.1)
         eventList = pygame.event.get()
         for event in eventList:
@@ -314,30 +314,24 @@ class MainGame:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
-                print(self.flips)
-                if self.flips:
-                    if chessPos not in A_TABLE or self.table[chessPos[0]][chessPos[1]] == null_chessman:
-                        return null_chessman
-                    else:
-                        pictureList, chessmanList = self.initTable()
-                        xChessman = self.table[chessPos[0]][chessPos[1]]
-                        xChessman.display = pictureList[nameProcess(xChessman.name) + "_select"]
-                        self.table[chessPos[0]][chessPos[1]] = xChessman
-                        return xChessman
+                if chessPos not in A_TABLE:
+                    return null_chessman
+                if self.selects.empty():
+                    for i in range(len(self.chessman)):
+                        if self.chessman[i].pos == chessPos:
+                            self.chessman[i].display = self.pictures[nameProcess(self.chessman[i].name) + "_select"]
+                            self.selects.put(i)
+                            return self.chessman[i]
                 else:
-                    if chessPos not in A_TABLE or (chessPos[0], chessPos[1]) not in lastchessman.reachPlaceB(
-                            self.table):
+                    # print("MOVEING")
+                    self.circles = []
+                    iNum = self.selects.get()
+                    self.chessman[iNum].display = self.pictures[nameProcess(self.chessman[iNum].name)]
+                    if chessPos not in self.chessman[iNum].reachPlaceB(self.table):
                         return null_chessman
                     else:
-                        oldTable = self.table
-                        print(chessPos, lastchessman.pos)
-                        self.table[lastchessman.pos[0]][lastchessman.pos[1]] = null_chessman
-                        print(self.table[lastchessman.pos[0]][lastchessman.pos[1]].name)
-                        print(self.table[chessPos[0]][chessPos[1]].name)
-                        newTable = self.table
-                        print(oldTable == newTable)
-                        #     print("????")
-                        self.flips = True
+                        self.chessman[iNum].move(chessPos)
+
 
         return null_chessman
 
