@@ -33,6 +33,9 @@ class Chessman:
     def __copy__(self):
         return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
 
+    def copy(self):
+        return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def premove(self, pos, tables):
         eat = False
         if tables[pos[0]][pos[1]] != null_chessman:
@@ -43,22 +46,26 @@ class Chessman:
         self.pos = pos
 
     def reachPlace(self, tables):
-        newTable = numpy.full((9, 10), null_chessman)
+        # newTable = numpy.full((9, 10), null_chessman)
         reachList = []
-        for x, y in A_TABLE:
-            newTable[x][y] = tables[x][y]
+        # for x, y in A_TABLE:
+        #     newTable[x][y] = tables[x][y]
+        # if self.reachPlaceB(tables) is None:
+        #     return reachList
         if self.reachPlaceB(tables) is None:
             return reachList
         for reach in self.reachPlaceB(tables):
-            copyTable = newTable
-            oPos = self.pos
-            oldChess = copyTable[reach[0]][reach[1]]
-            copyTable[oPos[0]][oPos[1]] = null_chessman
-            copyTable[reach[0]][reach[1]] = self
-            if not checkmateChecking(copyTable, self.side):
+            # copyTable = newTable
+            # oPos = self.pos
+            # oldChess = copyTable[reach[0]][reach[1]]
+            # copyTable[oPos[0]][oPos[1]] = null_chessman
+            # copyTable[reach[0]][reach[1]] = self
+            # if not checkmateChecking(copyTable, self.side):
+            #     reachList.append(reach)
+            # copyTable[oPos[0]][oPos[1]] = self
+            # copyTable[reach[0]][reach[1]] = oldChess
+            if not checkmateChecking(moveTable(tables, (self.pos[0], self.pos[1]), (reach[0], reach[1])), self.side):
                 reachList.append(reach)
-            copyTable[oPos[0]][oPos[1]] = self
-            copyTable[reach[0]][reach[1]] = oldChess
 
         return reachList
 
@@ -74,6 +81,9 @@ null_chessman = Chessman("null", "null", "null", (0, 0))
 
 # 车
 class Rook(Chessman):
+    def copy(self):
+        return Rook(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachList = []
         for row in range(self.pos[0] + 1, 8 + 1):
@@ -106,6 +116,9 @@ class Rook(Chessman):
 
 # 马
 class Knight(Chessman):
+    def copy(self):
+        return Knight(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 1, self.pos[1] + 2, self.pos[0], self.pos[1] + 1),
                       (self.pos[0] + 1, self.pos[1] - 2, self.pos[0], self.pos[1] - 1),
@@ -126,6 +139,9 @@ class Knight(Chessman):
 
 # 相
 class Bishop(Chessman):
+    def copy(self):
+        return Bishop(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 2, self.pos[1] + 2, self.pos[0] + 1, self.pos[1] + 1),
                       (self.pos[0] - 2, self.pos[1] + 2, self.pos[0] - 1, self.pos[1] + 1),
@@ -142,6 +158,9 @@ class Bishop(Chessman):
 
 # 士
 class Guardian(Chessman):
+    def copy(self):
+        return Guardian(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachListx = [(self.pos[0] + 1, self.pos[1] + 1),
                       (self.pos[0] - 1, self.pos[1] + 1),
@@ -157,6 +176,9 @@ class Guardian(Chessman):
 
 # 帅
 class King(Chessman):
+    def copy(self):
+        return King(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachListx = [(self.pos[0], self.pos[1] + 1),
                       (self.pos[0] - 1, self.pos[1]),
@@ -172,6 +194,9 @@ class King(Chessman):
 
 # 炮
 class Cannon(Chessman):
+    def copy(self):
+        return Cannon(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         # debug
         # if self.side == "red":
@@ -235,6 +260,9 @@ class Cannon(Chessman):
 
 # 兵
 class Soldier(Chessman):
+    def copy(self):
+        return Soldier(side=self.side, name=self.name, display=self.display, pos=self.pos)
+
     def reachPlaceB(self, tables):
         reachList = []
         if (self.pos[0], self.pos[1]) in S_TABLE[self.side]:
@@ -307,6 +335,21 @@ def checkDeath(tables, side):
                 if len(tables[x][y].reachPlace(tables)) > 0:
                     return False
     return True
+
+
+def moveTable(tables, fr, to):
+    chessmanList = []
+    for x, y in A_TABLE:
+        if tables[x][y] != null_chessman:
+            newChessman = tables[x][y].copy()
+            if (x, y) == fr:
+                newChessman.move(to)
+            if (x, y) != to:
+                chessmanList.append(newChessman)
+    newTable = numpy.full((9, 10), null_chessman)
+    for chessman in chessmanList:
+        newTable[chessman.pos[0]][chessman.pos[1]] = chessman
+    return newTable
 
 
 class MainGame:
@@ -505,5 +548,5 @@ def tableDump(tables):
         print(tables[x][y].name)
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="DROPS", debug=False)
+newGame = MainGame(chess_theme="WOOD", table_theme="SKELETON", debug=False, side="red")
 newGame.showTables()
