@@ -12,9 +12,9 @@ import datetime
 from utils import *
 from queue import Queue
 
+
 # pictureList = initPictures()
 # print(pictureList['main_table'])
-debug_mode = False
 
 
 # 棋子（所有棋子的父类）
@@ -266,13 +266,13 @@ def checkmateChecking(tables, side):
             if "king" in tables[x][y].name and tables[x][y].side == REVERSE_S[side]:
                 posOK = (x, y)
     for chessman in chessList:
-        # print(chessman.name, chessman.reachPlaceB(tables))
         if (chessman.reachPlaceB(tables)) is None:
             pass
         elif posK in chessman.reachPlaceB(tables):
+            if debug_mode:
+                print("[" + datetime.datetime.now().strftime(
+                    "%F%T") + "]" + "checkmateChecking -> True , by " + chessman.name)
             return True
-        if debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]" + "checkmateChecking -> True")
     if posK[0] == posOK[0]:
         if posK[1] < posOK[1]:
             for item in range(posK[1] + 1, posOK[1]):
@@ -284,12 +284,11 @@ def checkmateChecking(tables, side):
                     return False
     else:
         return False
+    if debug_mode:
+        print("[" + datetime.datetime.now().strftime(
+            "%F%T") + "]" + "checkmateChecking -> True , by opposites")
     return True
 
-
-# knight_pos = Position(1,1)
-# knight = Chessman("black", "马", "马", (1, 1))
-# print(knight.side)
 
 def showVictory(side):
     # print("{0} victory !".format(side))
@@ -303,8 +302,8 @@ def checkDeath(tables, side):
         if tables[x][y] != null_chessman:
             if tables[x][y].side == side:
                 if debug_mode:
-                    print("[" + datetime.datetime.now().strftime("%F%T") + "]" + tables[x][y].name + " " + \
-                          tables[x][y].reachPlace(tables))
+                    print("[" + datetime.datetime.now().strftime("%F%T") + "]" + tables[x][y].name + " -> " + \
+                          str(tables[x][y].reachPlace(tables)))
                 if len(tables[x][y].reachPlace(tables)) > 0:
                     return False
     return True
@@ -329,7 +328,7 @@ class MainGame:
 
     def flashTable(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: flashTable()")
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]flashTable()")
         for x, y in A_TABLE:
             self.table[x][y] = null_chessman
         for chessman in self.chessman:
@@ -337,7 +336,7 @@ class MainGame:
 
     def flashList(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: flashList()")
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]flashList()")
         newList = []
         for x, y in A_TABLE:
             if self.table[x][y] != null_chessman:
@@ -346,7 +345,7 @@ class MainGame:
 
     def initTable(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: initTable()")
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]initTable()")
         # 初始化棋子和棋子的位置
         self.pictures = initPictures(self.chess_theme, self.table_theme)
         self.chessman = [Rook("black", "black_rook_left", self.pictures["black_rook"], (8, 9)),
