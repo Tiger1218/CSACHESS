@@ -325,6 +325,7 @@ class MainGame:
         self.initTable()
         self.flashTable()
         self.selects = Queue()
+        self.recorder = Queue()
 
     def flashTable(self):
         if self.debug_mode:
@@ -381,6 +382,12 @@ class MainGame:
                          Soldier("red", "red_soldier_4", self.pictures["red_soldier"], (6, 3)),
                          Soldier("red", "red_soldier_5", self.pictures["red_soldier"], (8, 3))]
 
+    def judgeVictory(self):
+        if checkDeath(self.table, "red"):
+            showVictory("black")
+        if checkDeath(self.table, "black"):
+            showVictory("red")
+
     def showTables(self):
         if self.debug_mode:
             print("[" + datetime.datetime.now().strftime("%F%T") + "]: showTables()")
@@ -388,14 +395,10 @@ class MainGame:
         size = width, height = 521 + 300, 577
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(self.pictures["icon"])
-        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 v2.1 by tiger1218")
+        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 version - stable2.3 by tiger1218")
         while True:
             NChessman = self.eventJudge()
             self.flashTable()
-            if checkDeath(self.table, "red"):
-                showVictory("black")
-            if checkDeath(self.table, "black"):
-                showVictory("red")
             if NChessman != null_chessman:
                 self.circles = [CONVERT_P(x, y) for x, y in NChessman.reachPlace(self.table)]
             screen.fill(BLACK)
@@ -407,6 +410,7 @@ class MainGame:
             for circle in self.circles:
                 pygame.draw.circle(screen, BLUE, (circle[0], circle[1]), 8, 8)
             pygame.display.flip()
+            self.judgeVictory()
 
     def humanMoving(self, side):
         if self.debug_mode:
@@ -501,5 +505,5 @@ def tableDump(tables):
         print(tables[x][y].name)
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="WOOD", debug=True)
+newGame = MainGame(chess_theme="WOOD", table_theme="DROPS", debug=False)
 newGame.showTables()
