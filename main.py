@@ -12,9 +12,9 @@ import datetime
 from utils import *
 from queue import Queue
 
-
 # pictureList = initPictures()
 # print(pictureList['main_table'])
+debug_mode = False
 
 
 # 棋子（所有棋子的父类）
@@ -47,6 +47,8 @@ class Chessman:
         reachList = []
         for x, y in A_TABLE:
             newTable[x][y] = tables[x][y]
+        if self.reachPlaceB(tables) is None:
+            return reachList
         for reach in self.reachPlaceB(tables):
             copyTable = newTable
             oPos = self.pos
@@ -171,6 +173,9 @@ class King(Chessman):
 # 炮
 class Cannon(Chessman):
     def reachPlaceB(self, tables):
+        # debug
+        # if self.side == "red":
+        #     tableDump(tables)
         reachList = []
         flag = False
         for row in range(self.pos[0] + 1, 8 + 1):
@@ -178,6 +183,8 @@ class Cannon(Chessman):
                 if flag:
                     if tables[row][self.pos[1]].side != self.side:
                         reachList.append((row, self.pos[1]))
+                        break
+                    if tables[row][self.pos[1]].side == self.side:
                         break
                 else:
                     flag = True
@@ -190,6 +197,8 @@ class Cannon(Chessman):
                     if tables[row][self.pos[1]].side != self.side:
                         reachList.append((row, self.pos[1]))
                         break
+                    if tables[row][self.pos[1]].side == self.side:
+                        break
                 else:
                     flag = True
             if not flag:
@@ -201,6 +210,8 @@ class Cannon(Chessman):
                     if tables[self.pos[0]][line].side != self.side:
                         reachList.append((self.pos[0], line))
                         break
+                    if tables[self.pos[0]][line].side == self.side:
+                        break
                 else:
                     flag = True
             if not flag:
@@ -211,6 +222,8 @@ class Cannon(Chessman):
                 if flag:
                     if tables[self.pos[0]][line].side != self.side:
                         reachList.append((self.pos[0], line))
+                        break
+                    if tables[self.pos[0]][line].side == self.side:
                         break
                 else:
                     flag = True
@@ -257,9 +270,21 @@ def checkmateChecking(tables, side):
         if (chessman.reachPlaceB(tables)) is None:
             pass
         elif posK in chessman.reachPlaceB(tables):
-            # print("checkmate!")
             return True
-    return False
+        if debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]" + "checkmateChecking -> True")
+    if posK[0] == posOK[0]:
+        if posK[1] < posOK[1]:
+            for item in range(posK[1] + 1, posOK[1]):
+                if tables[posK[0]][item] != null_chessman:
+                    return False
+        else:
+            for item in range(posOK[1] + 1, posK[1]):
+                if tables[posK[0]][item] != null_chessman:
+                    return False
+    else:
+        return False
+    return True
 
 
 # knight_pos = Position(1,1)
@@ -267,9 +292,9 @@ def checkmateChecking(tables, side):
 # print(knight.side)
 
 def showVictory(side):
-    print("{0} victory !".format(side))
+    # print("{0} victory !".format(side))
     Tk().wm_withdraw()
-    messagebox.showinfo("{0} victory !".format(side), 'OK')
+    messagebox.showinfo("showVictory()", "{0} victory !".format(side))
     exit(0)
 
 
@@ -277,21 +302,23 @@ def checkDeath(tables, side):
     for x, y in A_TABLE:
         if tables[x][y] != null_chessman:
             if tables[x][y].side == side:
-                print(tables[x][y].name, tables[x][y].reachPlace(tables))
+                if debug_mode:
+                    print("[" + datetime.datetime.now().strftime("%F%T") + "]" + tables[x][y].name + " " + \
+                          tables[x][y].reachPlace(tables))
                 if len(tables[x][y].reachPlace(tables)) > 0:
                     return False
-    # for x, y in A_TABLE:
-    #     print(tables[x][y].name)
     return True
 
 
 class MainGame:
-    def __init__(self, chess_theme, table_theme, side="red", debug_mode=False):
+    def __init__(self, chess_theme, table_theme, side="red", debug=False):
+        global debug_mode
         self.side = side
         self.flips = False
         self.chess_theme = chess_theme
         self.table_theme = table_theme
-        self.debug_mode = debug_mode
+        self.debug_mode = debug
+        debug_mode = debug
         self.table = numpy.full((9, 10), null_chessman)
         self.chessman = []
         self.pictures = []
@@ -455,6 +482,8 @@ class MainGame:
         self.chessman[rNum].move(rMov)
 
     def debugMoving(self):
+        if self.debug_mode:
+            print("[" + datetime.datetime.now().strftime("%F%T") + "]: debugMoving()")
         posMovFrom = int(input("posMovFrom1")), int(input("posMovFrom2"))
         posMovTo = int(input("posMovTo1")), int(input("posMovTo2"))
         for iNum in range(len(self.chessman)):
@@ -468,5 +497,10 @@ class MainGame:
         self.flashTable()
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="WOOD", debug_mode=True)
+def tableDump(tables):
+    for x, y in A_TABLE:
+        print(tables[x][y].name)
+
+
+newGame = MainGame(chess_theme="WOOD", table_theme="WOOD", debug=True)
 newGame.showTables()
