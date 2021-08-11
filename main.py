@@ -1,5 +1,6 @@
 """
 Main Activity programmed by tiger1218(tiger1218@foxmail.com) , 2021/08/07
+AI Activity programmed by Accelerator(911184274@qq.com) , 2021/08/11
 """
 import time
 
@@ -444,7 +445,7 @@ class MainGame:
         size = 521 + 300, 577  # width, height
         screen = pygame.display.set_mode(size=size)
         pygame.display.set_icon(self.pictures['icon'])
-        pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 version - stable2.3 by tiger1218")
+        pygame.display.set_caption(BANNER)
         while True:
             NChessman = self.eventJudge()
             self.flashTable()
@@ -544,6 +545,7 @@ class MainGame:
                     eatSound.play()
                     self.chessman[xNum] = null_chessman
         self.chessman[rNum].move(rMov)
+        # self.flashTable()
 
     def debugMoving(self):
         if self.debug_mode:
@@ -566,5 +568,5 @@ def tableDump(tables):
         print(tables[x][y].name)
 
 
-newGame = MainGame(chess_theme="DELICATE", table_theme="SHEET", debug=False, side="red")
+newGame = MainGame(chess_theme="WOOD", table_theme="WOOD", debug=False, side="red")
 newGame.showTables()

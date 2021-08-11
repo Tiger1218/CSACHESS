@@ -1,5 +1,10 @@
 import pygame
 
+NAME = "CSACHESS"
+AUTHOR = "tiger1218 & Accelerator"
+VERSION = "v2.9.1"
+BANNER = "{0} {1} by {2}".format(NAME , VERSION , AUTHOR)
+
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
