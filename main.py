@@ -369,6 +369,12 @@ class MainGame:
         self.flashTable()
         self.selects = Queue()
         self.recorder = Queue()
+        self.states = 0
+        self.checks = 0
+        pygame.mixer.init()
+        pygame.mixer.music.load("res/BG.mp3")
+        pygame.mixer.music.set_volume(0.4)
+        pygame.mixer.music.play(-1)
 
     def flashTable(self):
         if self.debug_mode:
@@ -468,6 +474,7 @@ class MainGame:
                 if self.chessman[i].pos == chessPos and self.chessman[i].side == side:
                     self.chessman[i].display = self.pictures[nameProcess(self.chessman[i].name) + "_select"]
                     self.selects.put(i)
+                    selectSound.play()
                     return self.chessman[i]
         else:
             self.circles = []
@@ -480,8 +487,10 @@ class MainGame:
                 if eat:
                     for xNum in range(len(self.chessman)):
                         if self.chessman[xNum].pos == chessPos:
+                            eatSound.play()
                             self.chessman[xNum] = null_chessman
                 self.chessman[iNum].move(chessPos)
+                fallSound.play()
                 return Chessman(1000, 1000, 1000, 1000)
         return null_chessman
 
@@ -493,18 +502,26 @@ class MainGame:
                 exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.selects.empty():
+                    self.states = self.states + 1
                     self.side = REVERSE_S[self.side]
                     tChessman = self.humanMoving(REVERSE_S[self.side])
                     if tChessman == null_chessman:
                         self.side = REVERSE_S[self.side]
                     return null_chessman
                 else:
+                    self.states = self.states + 1
                     return self.humanMoving(self.side)
             else:
                 if self.side == "black":
                     self.computerMoving()
+                    self.states = self.states + 1
                     self.side = REVERSE_S[self.side]
-
+        if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
+            if abs(self.checks - self.states) >= 1:
+                if debug_mode:
+                    print("[" + datetime.datetime.now().strftime("%F%T") + "]: playcheckmateSound()")
+                checkmateSound.play()
+                self.checks = self.states
         return null_chessman
 
     def computerMoving(self):
@@ -524,6 +541,7 @@ class MainGame:
         if eat:
             for xNum in range(len(self.chessman)):
                 if self.chessman[xNum].pos == rMov:
+                    eatSound.play()
                     self.chessman[xNum] = null_chessman
         self.chessman[rNum].move(rMov)
 
@@ -548,5 +566,5 @@ def tableDump(tables):
         print(tables[x][y].name)
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="SKELETON", debug=False, side="red")
+newGame = MainGame(chess_theme="WOOD", table_theme="WHITE", debug=False, side="red")
 newGame.showTables()

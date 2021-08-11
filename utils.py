@@ -13,6 +13,14 @@ S_PALACE = {"black": B_PALACE, "red": R_PALACE}
 S_FORWARD = {"black": -1, "red": 1}
 REVERSE_S = {"black": "red", "red": "black"}
 DEBUG_MODE = False
+pygame.mixer.init()
+fallSound = pygame.mixer.Sound("res/FALL.WAV")
+fallSound.set_volume(0.4)
+selectSound = pygame.mixer.Sound("res/SELECT.mp3")
+selectSound.set_volume(0.4)
+eatSound = pygame.mixer.Sound("res/EAT.mp3")
+eatSound.set_volume(0.4)
+checkmateSound = pygame.mixer.Sound("res/CHECKMATE.mp3")
 
 
 def CONVERT_P(x, y):
