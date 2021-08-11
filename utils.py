@@ -12,7 +12,6 @@ R_PALACE = [(x, y) for x in range(3, 6) for y in range(3)]
 S_PALACE = {"black": B_PALACE, "red": R_PALACE}
 S_FORWARD = {"black": -1, "red": 1}
 REVERSE_S = {"black": "red", "red": "black"}
-DEBUG_MODE = False
 pygame.mixer.init()
 fallSound = pygame.mixer.Sound("res/FALL.WAV")
 fallSound.set_volume(0.4)

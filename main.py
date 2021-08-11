@@ -3,8 +3,6 @@ Main Activity programmed by tiger1218(tiger1218@foxmail.com) , 2021/08/07
 """
 import time
 
-import pygame
-import sys
 from tkinter import messagebox
 from tkinter import *
 import numpy
@@ -18,6 +16,13 @@ from queue import Queue
 
 
 # 棋子（所有棋子的父类）
+
+def preMove(pos, tables):
+    eat = False
+    if tables[pos[0]][pos[1]] != null_chessman:
+        eat = True
+    return eat
+
 
 class Chessman:
     def __init__(self, side, name, display, pos):
@@ -35,12 +40,6 @@ class Chessman:
 
     def copy(self):
         return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
-
-    def premove(self, pos, tables):
-        eat = False
-        if tables[pos[0]][pos[1]] != null_chessman:
-            eat = True
-        return eat
 
     def move(self, pos):
         self.pos = pos
@@ -77,6 +76,7 @@ class Chessman:
 
 
 null_chessman = Chessman("null", "null", "null", (0, 0))
+DEBUG_MODE = False
 
 
 # 车
@@ -297,7 +297,7 @@ def checkmateChecking(tables, side):
         if (chessman.reachPlaceB(tables)) is None:
             pass
         elif posK in chessman.reachPlaceB(tables):
-            if debug_mode:
+            if DEBUG_MODE:
                 print("[" + datetime.datetime.now().strftime(
                     "%F%T") + "]" + "checkmateChecking -> True , by " + chessman.name)
             return True
@@ -312,7 +312,7 @@ def checkmateChecking(tables, side):
                     return False
     else:
         return False
-    if debug_mode:
+    if DEBUG_MODE:
         print("[" + datetime.datetime.now().strftime(
             "%F%T") + "]" + "checkmateChecking -> True , by opposites")
     return True
@@ -329,9 +329,9 @@ def checkDeath(tables, side):
     for x, y in A_TABLE:
         if tables[x][y] != null_chessman:
             if tables[x][y].side == side:
-                if debug_mode:
-                    print("[" + datetime.datetime.now().strftime("%F%T") + "]" + tables[x][y].name + " -> " + \
-                          str(tables[x][y].reachPlace(tables)))
+                if DEBUG_MODE:
+                    print("[" + datetime.datetime.now().strftime("%F%T") + "]"
+                          + tables[x][y].name + " -> " + str(tables[x][y].reachPlace(tables)))
                 if len(tables[x][y].reachPlace(tables)) > 0:
                     return False
     return True
@@ -354,13 +354,13 @@ def moveTable(tables, fr, to):
 
 class MainGame:
     def __init__(self, chess_theme, table_theme, side="red", debug=False):
-        global debug_mode
+        global DEBUG_MODE
         self.side = side
         self.flips = False
         self.chess_theme = chess_theme
         self.table_theme = table_theme
         self.debug_mode = debug
-        debug_mode = debug
+        DEBUG_MODE = debug
         self.table = numpy.full((9, 10), null_chessman)
         self.chessman = []
         self.pictures = []
@@ -441,9 +441,9 @@ class MainGame:
         if self.debug_mode:
             print("[" + datetime.datetime.now().strftime("%F%T") + "]: showTables()")
         pygame.init()
-        size = width, height = 521 + 300, 577
+        size = 521 + 300, 577  # width, height
         screen = pygame.display.set_mode(size=size)
-        pygame.display.set_icon(self.pictures["icon"])
+        pygame.display.set_icon(self.pictures['icon'])
         pygame.display.set_caption("雅礼中学计算机协会象棋人工智能 version - stable2.3 by tiger1218")
         while True:
             NChessman = self.eventJudge()
@@ -483,7 +483,7 @@ class MainGame:
             if chessPos not in self.chessman[iNum].reachPlace(self.table):
                 return null_chessman
             else:
-                eat = self.chessman[iNum].premove(chessPos, self.table)
+                eat = preMove(chessPos, self.table)
                 if eat:
                     for xNum in range(len(self.chessman)):
                         if self.chessman[xNum].pos == chessPos:
@@ -518,8 +518,8 @@ class MainGame:
                     self.side = REVERSE_S[self.side]
         if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
             if abs(self.checks - self.states) >= 1:
-                if debug_mode:
-                    print("[" + datetime.datetime.now().strftime("%F%T") + "]: playcheckmateSound()")
+                if DEBUG_MODE:
+                    print("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
                 checkmateSound.play()
                 self.checks = self.states
         return null_chessman
@@ -537,7 +537,7 @@ class MainGame:
         # print(self.chessman[rNum].name)
         rMov = self.chessman[rNum].reachPlace(self.table) \
             [__import__("random").randint(0, len(self.chessman[rNum].reachPlace(self.table)) - 1)]
-        eat = self.chessman[rNum].premove(rMov, self.table)
+        eat = preMove(rMov, self.table)
         if eat:
             for xNum in range(len(self.chessman)):
                 if self.chessman[xNum].pos == rMov:
@@ -552,7 +552,7 @@ class MainGame:
         posMovTo = int(input("posMovTo1")), int(input("posMovTo2"))
         for iNum in range(len(self.chessman)):
             if self.chessman[iNum].pos == posMovFrom:
-                eat = self.chessman[iNum].premove(posMovTo, self.table)
+                eat = preMove(posMovTo, self.table)
                 if eat:
                     for xNum in range(len(self.chessman)):
                         if self.chessman[xNum].pos == posMovTo:
@@ -566,5 +566,5 @@ def tableDump(tables):
         print(tables[x][y].name)
 
 
-newGame = MainGame(chess_theme="WOOD", table_theme="WHITE", debug=False, side="red")
+newGame = MainGame(chess_theme="DELICATE", table_theme="SHEET", debug=False, side="red")
 newGame.showTables()
