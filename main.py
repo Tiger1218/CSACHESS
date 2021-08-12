@@ -18,10 +18,15 @@ import logging
 
 
 # class Moving:
-#     def __init__(self, fpos, tpos, chessman):
+#     def __init__(self, fpos, tpos, chessman, side):
 #         self.posFrom = fpos
 #         self.posTo = tpos
 #         self.chessman = chessman
+#         self.side = side
+#
+#     def format(self):
+#
+#
 #
 #
 #

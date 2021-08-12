@@ -17,6 +17,16 @@ R_PALACE = [(x, y) for x in range(3, 6) for y in range(3)]
 S_PALACE = {"black": B_PALACE, "red": R_PALACE}
 S_FORWARD = {"black": -1, "red": 1}
 REVERSE_S = {"black": "red", "red": "black"}
+CANNON_S = {"black": "砲", "red": "炮"}
+KNIGHT_S = {"black": "馬", "red": "馬"}
+BISHOP_S = {"black": "象", "red": "相"}
+GUARDIAN_S = {"black": "士", "red": "仕"}
+KING_S = {"black": "将", "red": "帅"}
+ROOK_S = {"black": "車", "red": "車"}
+SOLDIER_S = {"black": "卒", "red": "兵"}
+NAME_TABLE = {"rook": ROOK_S, "cannon": CANNON_S, "soldier": SOLDIER_S, "knight": KNIGHT_S,
+              "bishop": BISHOP_S, "guardian": GUARDIAN_S, "king": KING_S
+              }
 pygame.mixer.init()
 fallSound = pygame.mixer.Sound("res/FALL.WAV")
 fallSound.set_volume(0.4)
@@ -35,7 +45,8 @@ def nameProcess(string):
     return string[0:string.rfind('_')]
 
 
-# def nameE
+def nameExtractor(string):
+    return string[0:string.find('_')]
 
 
 def initPictures(chess_themes, table_themes):
