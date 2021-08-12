@@ -2,7 +2,7 @@ import pygame
 
 NAME = "CSACHESS"
 AUTHOR = "tiger1218 & Accelerator"
-VERSION = "v2.9.1"
+VERSION = "v2.9.3"
 BANNER = "{0} {1} by {2}".format(NAME , VERSION , AUTHOR)
 
 BLACK = (0, 0, 0)
@@ -33,6 +33,9 @@ def CONVERT_P(x, y):
 
 def nameProcess(string):
     return string[0:string.rfind('_')]
+
+
+# def nameE
 
 
 def initPictures(chess_themes, table_themes):

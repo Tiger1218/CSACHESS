@@ -10,10 +10,29 @@ import numpy
 import datetime
 from utils import *
 from queue import Queue
+import logging
 
 
 # pictureList = initPictures()
 # print(pictureList['main_table'])
+
+
+# class Moving:
+#     def __init__(self, fpos, tpos, chessman):
+#         self.posFrom = fpos
+#         self.posTo = tpos
+#         self.chessman = chessman
+#
+#
+#
+# class Recorder:
+#     def __init__(self):
+#         self.recorder = []
+#
+#     def add(self, move):
+#         self.recorder.append(move)
+#
+#     def
 
 
 # 棋子（所有棋子的父类）
@@ -39,10 +58,16 @@ class Chessman:
     def __copy__(self):
         return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
 
+    def __str__(self):
+        return "{0} on {1}".format(self.name, self.pos)
+
     def copy(self):
         return Chessman(side=self.side, name=self.name, display=self.display, pos=self.pos)
 
     def move(self, pos):
+        if DEBUG_MODE:
+            logging.info("[" + datetime.datetime.now().strftime(
+                "%F%T") + "]" + str(self) + "move to " + str(pos))
         self.pos = pos
 
     def reachPlace(self, tables):
@@ -76,7 +101,7 @@ class Chessman:
         return []
 
 
-null_chessman = Chessman("null", "null", "null", (0, 0))
+null_chessman = Chessman("null", "null", "null", (10, 10))
 DEBUG_MODE = False
 
 
@@ -299,7 +324,7 @@ def checkmateChecking(tables, side):
             pass
         elif posK in chessman.reachPlaceB(tables):
             if DEBUG_MODE:
-                print("[" + datetime.datetime.now().strftime(
+                logging.info("[" + datetime.datetime.now().strftime(
                     "%F%T") + "]" + "checkmateChecking -> True , by " + chessman.name)
             return True
     if posK[0] == posOK[0]:
@@ -314,7 +339,7 @@ def checkmateChecking(tables, side):
     else:
         return False
     if DEBUG_MODE:
-        print("[" + datetime.datetime.now().strftime(
+        logging.info("[" + datetime.datetime.now().strftime(
             "%F%T") + "]" + "checkmateChecking -> True , by opposites")
     return True
 
@@ -331,8 +356,8 @@ def checkDeath(tables, side):
         if tables[x][y] != null_chessman:
             if tables[x][y].side == side:
                 if DEBUG_MODE:
-                    print("[" + datetime.datetime.now().strftime("%F%T") + "]"
-                          + tables[x][y].name + " -> " + str(tables[x][y].reachPlace(tables)))
+                    logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]"
+                                 + tables[x][y].name + " -> " + str(tables[x][y].reachPlace(tables)))
                 if len(tables[x][y].reachPlace(tables)) > 0:
                     return False
     return True
@@ -362,6 +387,8 @@ class MainGame:
         self.table_theme = table_theme
         self.debug_mode = debug
         DEBUG_MODE = debug
+        if DEBUG_MODE:
+            logging.basicConfig(level=logging.DEBUG, filename="log.log")
         self.table = numpy.full((9, 10), null_chessman)
         self.chessman = []
         self.pictures = []
@@ -379,15 +406,16 @@ class MainGame:
 
     def flashTable(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]flashTable()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]flashTable()")
         for x, y in A_TABLE:
             self.table[x][y] = null_chessman
         for chessman in self.chessman:
-            self.table[chessman.pos[0]][chessman.pos[1]] = chessman
+            if chessman != null_chessman:
+                self.table[chessman.pos[0]][chessman.pos[1]] = chessman
 
     def flashList(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]flashList()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]flashList()")
         newList = []
         for x, y in A_TABLE:
             if self.table[x][y] != null_chessman:
@@ -396,7 +424,7 @@ class MainGame:
 
     def initTable(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]initTable()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]initTable()")
         # 初始化棋子和棋子的位置
         self.pictures = initPictures(self.chess_theme, self.table_theme)
         self.chessman = [Rook("black", "black_rook_left", self.pictures["black_rook"], (8, 9)),
@@ -440,7 +468,7 @@ class MainGame:
 
     def showTables(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: showTables()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: showTables()")
         pygame.init()
         size = 521 + 300, 577  # width, height
         screen = pygame.display.set_mode(size=size)
@@ -464,7 +492,7 @@ class MainGame:
 
     def humanMoving(self, side):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: humanMoving({})".format(side))
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: humanMoving({})".format(side))
         pos = pygame.mouse.get_pos()
         chessPos = (round((pos[0] - 36) / 57), 9 - round((pos[1] - 28) / 57))
         # print(chessPos)
@@ -515,19 +543,20 @@ class MainGame:
             else:
                 if self.side == "black":
                     self.computerMoving()
+                    # self.debugMoving()
                     self.states = self.states + 1
                     self.side = REVERSE_S[self.side]
         if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
-            if abs(self.checks - self.states) >= 1:
+            if abs(self.checks - self.states) >= 2:
                 if DEBUG_MODE:
-                    print("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
+                    logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
                 checkmateSound.play()
                 self.checks = self.states
         return null_chessman
 
     def computerMoving(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: computerMoving()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: computerMoving()")
         canary = 0
         rNum = __import__("random").randint(0, len(self.chessman) // 2)
         while len(self.chessman[rNum].reachPlace(self.table)) == 0 or self.chessman[rNum].side == "red":
@@ -549,7 +578,7 @@ class MainGame:
 
     def debugMoving(self):
         if self.debug_mode:
-            print("[" + datetime.datetime.now().strftime("%F%T") + "]: debugMoving()")
+            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: debugMoving()")
         posMovFrom = int(input("posMovFrom1")), int(input("posMovFrom2"))
         posMovTo = int(input("posMovTo1")), int(input("posMovTo2"))
         for iNum in range(len(self.chessman)):
