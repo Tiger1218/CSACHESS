@@ -2,7 +2,7 @@ import pygame
 
 NAME = "CSACHESS"
 AUTHOR = "tiger1218 & Accelerator"
-VERSION = "v2.9.3"
+VERSION = "v2.9.4"
 BANNER = "{0} {1} by {2}".format(NAME , VERSION , AUTHOR)
 
 BLACK = (0, 0, 0)

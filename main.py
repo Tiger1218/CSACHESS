@@ -1,6 +1,7 @@
 """
 Main Activity programmed by tiger1218(tiger1218@foxmail.com) , 2021/08/07
 AI Activity programmed by Accelerator(911184274@qq.com) , 2021/08/11
+能把现实世界暂时抛之脑后的玩家是幸福的，每个游戏不过是一堆数据，但对有些玩家来说真的是一个美丽的虚幻世界。
 """
 import time
 
@@ -525,6 +526,12 @@ class MainGame:
                             self.chessman[xNum] = null_chessman
                 self.chessman[iNum].move(chessPos)
                 fallSound.play()
+                if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
+                    if abs(self.checks - self.states) >= 2:
+                        if DEBUG_MODE:
+                            logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
+                        checkmateSound.play()
+                        self.checks = self.states
                 return Chessman(1000, 1000, 1000, 1000)
         return null_chessman
 
@@ -551,12 +558,6 @@ class MainGame:
                     # self.debugMoving()
                     self.states = self.states + 1
                     self.side = REVERSE_S[self.side]
-        if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
-            if abs(self.checks - self.states) >= 2:
-                if DEBUG_MODE:
-                    logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
-                checkmateSound.play()
-                self.checks = self.states
         return null_chessman
 
     def computerMoving(self):
@@ -578,6 +579,12 @@ class MainGame:
                 if self.chessman[xNum].pos == rMov:
                     eatSound.play()
                     self.chessman[xNum] = null_chessman
+        if checkmateChecking(self.table, "red") or checkmateChecking(self.table, "black"):
+            if abs(self.checks - self.states) >= 2:
+                if DEBUG_MODE:
+                    logging.info("[" + datetime.datetime.now().strftime("%F%T") + "]: playCheckmateSound()")
+                checkmateSound.play()
+                self.checks = self.states
         self.chessman[rNum].move(rMov)
         # self.flashTable()
 
